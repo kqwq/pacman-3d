@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { PNG } from 'pngjs/browser';
 const loader = new THREE.ImageLoader();
 
 
@@ -185,7 +184,7 @@ function wallFactory(scene, objects, txt) {
 
 
 
-  loader.load("https://upload.wikimedia.org/wikipedia/en/5/59/Pac-man.png", function (img) {
+  loader.load("asset/maze.png", function (img) {
 
 
     let canvas = document.createElement("canvas")

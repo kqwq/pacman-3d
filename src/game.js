@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 import { PointerLockControls } from './util/PointerLockControls.js';
 import { floorFactory, wallFactory } from './component/factory.js';
-import { collisionFrame, calculateCollisionPoints } from './component/collision.js';
+import { detectCollisions, calculateCollisionPoints } from './component/collision.js';
 
 let camera, scene, renderer, controls;
 
@@ -14,7 +14,7 @@ let moveForward = false;
 let moveBackward = false;
 let moveLeft = false;
 let moveRight = false;
-let canJump = false;
+let falling = true;
 
 let prevTime = performance.now();
 const velocity = new THREE.Vector3();
@@ -26,8 +26,8 @@ function init() {
 
 
   scene = new THREE.Scene();
-  scene.background = new THREE.Color( 0xffffff );
-  scene.fog = new THREE.Fog( 0xffffff, 0, 750 );
+  scene.background = new THREE.Color( 0x445 );
+  scene.fog = new THREE.Fog( 0x222, 0, 123 );
 
   const light = new THREE.HemisphereLight( 0xeeeeff, 0x777788, 0.75 );
   light.position.set( 0.5, 1, 0.75 );
@@ -87,8 +87,8 @@ function init() {
         break;
 
       case 'Space':
-        if ( canJump === true ) velocity.y += 50;
-        canJump = false;
+        if ( !falling ) velocity.y += 50;
+        falling = true;
         break;
 
     }
@@ -136,7 +136,7 @@ function init() {
   new THREE.TextureLoader().load( 'asset/neon.jpg' , function(texture) {
 
     wallFactory(scene, objects, texture);
-    objects.forEach(o => calculateCollisionPoints(o))
+    setTimeout(() => objects.forEach(o => calculateCollisionPoints(o)), 1000);
   })
 
   // renderer
@@ -171,19 +171,21 @@ function animate() {
 
   if ( controls.isLocked === true ) {
 
-    raycaster.ray.origin.copy( controls.getObject().position );
-    raycaster.ray.origin.y += 1;
+    //raycaster.ray.origin.copy( controls.getObject().position );
+    //raycaster.ray.origin.y += 1;
 
-    const intersections = raycaster.intersectObjects( objects, false );
+    //const intersections = raycaster.intersectObjects( objects, false );
 
-    const onObject = intersections.length > 0;
+    //const onObject = intersections.length > 0;
 
     const delta = ( time - prevTime ) / 1000;
 
     velocity.x -= velocity.x * 10.0 * delta;
     velocity.z -= velocity.z * 10.0 * delta;
 
-    velocity.y -= 9.8 * 10.0 * delta; // 100.0 = mass
+    if (falling) {
+      velocity.y -= 9.8 * 10.0 * delta; // 100.0 = mass
+    }
 
     direction.z = Number( moveForward ) - Number( moveBackward );
     direction.x = Number( moveRight ) - Number( moveLeft );
@@ -192,20 +194,33 @@ function animate() {
     if ( moveForward || moveBackward ) velocity.z -= direction.z * 400.0 * delta;
     if ( moveLeft || moveRight ) velocity.x -= direction.x * 400.0 * delta;
 
-    velocity.y = Math.max( 0, velocity.y );
-
-  
-
+    let lastSafePosition = controls.getObject().position.clone();
+    
     controls.moveRight( - velocity.x * delta );
     controls.moveForward( - velocity.z * delta );
-
     controls.getObject().position.y += ( velocity.y * delta ); // new behavior
+    
 
 
+    // check collision
+    let onTop = detectCollisions(controls, lastSafePosition, velocity)
+    if (falling && onTop) {
+      velocity.y = 0;
+      falling = false;
+    }
+    if (!falling && onTop) {
+      velocity.y = 0;
+      falling = true;
+    }
+    
+
+
+
+ 
     if ( controls.getObject().position.y < 4 ) {
       velocity.y = 0;
       controls.getObject().position.y = 4;
-      canJump = true;
+      falling = false;
     }
 
   }
