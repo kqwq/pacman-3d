@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 const loader = new THREE.ImageLoader();
-
+import { Coin, Powerup } from './collectable.js';
 
 
 
@@ -195,19 +195,31 @@ function wallFactory(scene, objects, txt) {
     
     let pointArray = Array(img.height).fill(0).map(() => Array(img.width).fill(0));
     for (let i = 0; i < pixelData.length; i += 4) {
+      let x = i / 4 % img.width;
+      let y = Math.floor(i / 4 / img.width);
       // Check if pixel is #2121de (blue)
       if (pixelData[i] === 33 && pixelData[i + 1] === 33 && pixelData[i + 2] === 222) {
-        let x = i / 4 % img.width;
-        let y = Math.floor(i / 4 / img.width);
-        // Set pixel to white
-        pixelData[i] = 255;
-        pixelData[i + 1] = 255;
-        pixelData[i + 2] = 255;
         pointArray[y][x] = 1;
       }
+      
+      // Look for coins (2x2 grid of color #ffb897, RGB(255, 184, 151))
+      if (pixelData[i + 2] === 151 && pixelData[i + 1] === pixelData[i + 4 + 1] && pixelData[i + 1] === pixelData[i + img.width * 4 + 1]) {
+        let coin = new Coin(x, y)
+
+        scene.add(coin);
+        
+      }
+
+      // Look for powerups dots, brown RGB(185, 122, 87)
+      if (pixelData[i] === 185 && pixelData[i + 1] === 122 && pixelData[i + 2] === 87) {
+        let powerup = new Powerup(x, y)
+
+        scene.add(powerup);
+        
+      }
     }
-    canvas.getContext('2d').putImageData(new ImageData(pixelData, img.width, img.height), 0, 0);
-    //document.body.appendChild(canvas);
+
+    
 
     //
     let rects = convertPointsToRectangles(pointArray)
@@ -221,4 +233,37 @@ function wallFactory(scene, objects, txt) {
 
 }
 
-export { floorFactory, wallFactory };
+function ghostFactory(scene, objects, geometry, ind) {
+  let ghostColors = [ // Ghost colors from pacman
+    0xff0000,
+    0x00ffff,
+    0xffb8de,
+    0xffb847
+  ]
+  let ghostCoords = [
+    [0, 0],
+    [6, 0],
+    [12, 0],
+    [18, 0]
+  ]
+  let textureMatcap = new THREE.TextureLoader().load(`asset/matghost.png`)
+
+  var ghostMaterial = new THREE.MeshMatcapMaterial({ 
+    color: ghostColors[ind || 0],
+    matcap: textureMatcap,
+    
+
+  });
+
+  const ghost = new THREE.Mesh(geometry, ghostMaterial);
+  ghost.name = 'ghost';
+  ghost.scale.set(0.2, 0.2, 0.2);
+  ghost.rotateOnAxis(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+  // scale down by 20%
+  let [x, z] = ghostCoords[ind || 0]
+  ghost.position.set(x, 5, z);
+  scene.add(ghost);
+
+}
+
+export { floorFactory, wallFactory, ghostFactory };

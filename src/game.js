@@ -1,14 +1,13 @@
 import * as THREE from 'three';
 
-import { PointerLockControls } from './util/PointerLockControls.js';
-import { floorFactory, wallFactory } from './component/factory.js';
+import { floorFactory, wallFactory, ghostFactory } from './component/factory.js';
 import { detectCollisions, calculateCollisionPoints } from './component/collision.js';
+import { PointerLockControls } from './util/PointerLockControls.js';
+var STLLoader = require('three-stl-loader')(THREE)
 
-let camera, scene, renderer, controls;
+let camera, scene, renderer, controls, myPointLight;
 
 const objects = [];
-
-let raycaster;
 
 let moveForward = false;
 let moveBackward = false;
@@ -22,18 +21,19 @@ const direction = new THREE.Vector3();
 
 function init() {
 
+  // Camera/rendering
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 );
-
-
   scene = new THREE.Scene();
   scene.background = new THREE.Color( 0x445 );
-  scene.fog = new THREE.Fog( 0x222, 0, 123 );
+  scene.fog = new THREE.Fog( 0x222, 0, 70 );
 
+  // Lights
   const light = new THREE.HemisphereLight( 0xeeeeff, 0x777788, 0.75 );
   light.position.set( 0.5, 1, 0.75 );
   scene.add( light );
+  myPointLight = new THREE.PointLight( 0xffff99, 2.1, 19 );
+  scene.add( myPointLight );
 
-  //scene.add( new THREE.PointLight( 0xffffff, 1, 100 ) );
 
   controls = new PointerLockControls( camera, document.body );
 
@@ -87,7 +87,7 @@ function init() {
         break;
 
       case 'Space':
-        if ( !falling ) velocity.y += 50;
+        if ( !falling || velocity.y == 0 ) velocity.y = 50;
         falling = true;
         break;
 
@@ -132,17 +132,26 @@ function init() {
   floorFactory(scene) ;
 
   // walls
-  console.log('hhh')
   new THREE.TextureLoader().load( 'asset/neon.jpg' , function(texture) {
 
     wallFactory(scene, objects, texture);
     setTimeout(() => objects.forEach(o => calculateCollisionPoints(o)), 1000);
   })
 
+  // ghosts
+  new STLLoader().load( 'asset/ghost.stl', function ( geometry ) {
+    console.log(34, geometry)
+    for (let i = 0; i < 4; i ++) {
+    ghostFactory(scene, objects, geometry, i);
+    }
+  });
+
+
   // renderer
   renderer = new THREE.WebGLRenderer( { antialias: true } );
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
+  //renderer.outputEncoding = THREE.sRGBEncoding;
   document.body.appendChild( renderer.domElement );
 
   // resize
@@ -203,27 +212,20 @@ function animate() {
 
 
     // check collision
-    let onTop = detectCollisions(controls, lastSafePosition, velocity)
-    if (falling && onTop) {
+    falling = !detectCollisions(controls, lastSafePosition, velocity)
+
+    // falling
+    if ( controls.getObject().position.y < 6.5 ) {
       velocity.y = 0;
+      controls.getObject().position.y = 6.5;
       falling = false;
     }
-    if (!falling && onTop) {
-      velocity.y = 0;
-      falling = true;
-    }
-    
-
-
-
- 
-    if ( controls.getObject().position.y < 4 ) {
-      velocity.y = 0;
-      controls.getObject().position.y = 4;
-      falling = false;
-    }
-
   }
+
+  // my point light
+  myPointLight.position.x = controls.getObject().position.x;
+  myPointLight.position.y = controls.getObject().position.y;
+  myPointLight.position.z = controls.getObject().position.z;
 
   prevTime = time;
 
