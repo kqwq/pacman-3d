@@ -101,7 +101,7 @@ function floorFactory(scene) {
   
     for ( let i = 0, l = position.count; i < l; i ++ ) {
   
-      color.setHSL( Math.random() * 0.1 + 0.6, 0.25, Math.random() * 0.2 );
+      color.setHSL( Math.random() * 0.1 + 0.6, 0.25, Math.random() * 0.25 );
       colorsFloor.push( color.r, color.g, color.b );
   
     }

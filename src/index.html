@@ -4,9 +4,20 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document12</title>
+  <title>3D Pac-Man</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+    </style>
 </head>
 <body>
+  <div id="hud">
+    <div id="hud-inner">
+      <p>Stage <span id="stage">0</span></p>
+      <p><span id="coins"></span> / <span id="totalCoins"></span></p>
+      <p id="score">00000</p>
+      <p id="powerup"></p>
+    </div>
+  </div>
   <div id="blocker">
     <div id="instructions">
       <p style="font-size:36px">

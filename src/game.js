@@ -5,7 +5,7 @@ import { detectCollisions, calculateCollisionPoints } from './component/collisio
 import { PointerLockControls } from './util/PointerLockControls.js';
 var STLLoader = require('three-stl-loader')(THREE)
 
-let camera, scene, renderer, controls, myPointLight;
+let camera, scene, renderer, controls, myPointLight, raycaster;
 
 const objects = [];
 
@@ -135,7 +135,7 @@ function init() {
   new THREE.TextureLoader().load( 'asset/neon.jpg' , function(texture) {
 
     wallFactory(scene, objects, texture);
-    setTimeout(() => objects.forEach(o => calculateCollisionPoints(o)), 1000);
+    setTimeout(() => objects.forEach(o => calculateCollisionPoints(o, 'wall')), 1000);
   })
 
   // ghosts
