@@ -2,6 +2,7 @@ import * as THREE from 'three';
 
 import { PointerLockControls } from './util/PointerLockControls.js';
 import { floorFactory, wallFactory } from './component/factory.js';
+import { collisionFrame, calculateCollisionPoints } from './component/collision.js';
 
 let camera, scene, renderer, controls;
 
@@ -22,7 +23,7 @@ const direction = new THREE.Vector3();
 function init() {
 
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 );
-  camera.position.y = 10;
+
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color( 0xffffff );
@@ -31,6 +32,8 @@ function init() {
   const light = new THREE.HemisphereLight( 0xeeeeff, 0x777788, 0.75 );
   light.position.set( 0.5, 1, 0.75 );
   scene.add( light );
+
+  //scene.add( new THREE.PointLight( 0xffffff, 1, 100 ) );
 
   controls = new PointerLockControls( camera, document.body );
 
@@ -84,7 +87,7 @@ function init() {
         break;
 
       case 'Space':
-        if ( canJump === true ) velocity.y += 100;
+        if ( canJump === true ) velocity.y += 50;
         canJump = false;
         break;
 
@@ -129,7 +132,12 @@ function init() {
   floorFactory(scene) ;
 
   // walls
-  wallFactory(scene, objects)
+  console.log('hhh')
+  new THREE.TextureLoader().load( 'asset/neon.jpg' , function(texture) {
+
+    wallFactory(scene, objects, texture);
+    objects.forEach(o => calculateCollisionPoints(o))
+  })
 
   // renderer
   renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -153,6 +161,8 @@ function onWindowResize() {
 
 }
 
+
+
 function animate() {
 
   requestAnimationFrame( animate );
@@ -162,7 +172,7 @@ function animate() {
   if ( controls.isLocked === true ) {
 
     raycaster.ray.origin.copy( controls.getObject().position );
-    raycaster.ray.origin.y -= 10;
+    raycaster.ray.origin.y += 1;
 
     const intersections = raycaster.intersectObjects( objects, false );
 
@@ -182,25 +192,20 @@ function animate() {
     if ( moveForward || moveBackward ) velocity.z -= direction.z * 400.0 * delta;
     if ( moveLeft || moveRight ) velocity.x -= direction.x * 400.0 * delta;
 
-    if ( onObject === true ) {
+    velocity.y = Math.max( 0, velocity.y );
 
-      velocity.y = Math.max( 0, velocity.y );
-      canJump = true;
-
-    }
+  
 
     controls.moveRight( - velocity.x * delta );
     controls.moveForward( - velocity.z * delta );
 
     controls.getObject().position.y += ( velocity.y * delta ); // new behavior
 
-    if ( controls.getObject().position.y < 10 ) {
 
+    if ( controls.getObject().position.y < 4 ) {
       velocity.y = 0;
-      controls.getObject().position.y = 10;
-
+      controls.getObject().position.y = 4;
       canJump = true;
-
     }
 
   }

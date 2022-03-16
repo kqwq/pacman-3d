@@ -21,7 +21,7 @@ function convertPointsToRectangles(pointArray) {
       if (pointArray[y][x]) {
         let x1 = x;
         let x2 = x;
-        while (pointArray[y][x2]) {
+        while (pointArray[y][x2]===1) {
           x2 ++;
         }
         if (x2 - x1 > 1) {
@@ -42,7 +42,7 @@ function convertPointsToRectangles(pointArray) {
       if (pointArray[y][x]) {
         let y1 = y;
         let y2 = y;
-        while (pointArray[y2][x]) {
+        while (pointArray[y2][x]===1) {
           y2 ++;
         }
         if (y2 - y1 > 1) {
@@ -74,8 +74,10 @@ function convertPointsToRectangles(pointArray) {
 function floorFactory(scene) {
     // floor
 
-    let floorGeometry = new THREE.PlaneGeometry( 1000, 1000, 50, 50 );
+    let floorGeometry = new THREE.PlaneGeometry( 300, 300, 16, 16);
     floorGeometry.rotateX( - Math.PI / 2 );
+    // move floor
+
   
     // vertex displacement
   
@@ -85,9 +87,9 @@ function floorFactory(scene) {
   
       vertex.fromBufferAttribute( position, i );
   
-      vertex.x += Math.random() * 20 - 10;
+      vertex.x += Math.random() * 20 + 100;
       vertex.y += Math.random() * 0.1;
-      vertex.z += Math.random() * 20 - 10;
+      vertex.z += Math.random() * 20 + 150;
   
       position.setXYZ( i, vertex.x, vertex.y, vertex.z );
   
@@ -100,7 +102,7 @@ function floorFactory(scene) {
   
     for ( let i = 0, l = position.count; i < l; i ++ ) {
   
-      color.setHSL( Math.random() * 0.1 + 0.6, 0.25, Math.random() * 0.5 + 0.25 );
+      color.setHSL( Math.random() * 0.1 + 0.6, 0.25, Math.random() * 0.2 );
       colorsFloor.push( color.r, color.g, color.b );
   
     }
@@ -110,14 +112,53 @@ function floorFactory(scene) {
     const floorMaterial = new THREE.MeshBasicMaterial( { vertexColors: true } );
   
     const floor = new THREE.Mesh( floorGeometry, floorMaterial );
+    floor.name = 'floor';
     scene.add( floor )
 }
 
-function wallFactory(scene, objects) {
-  const createBox = (x, y, z, w, h, d, col) => {
+function wallFactory(scene, objects, txt) {
+
+  var blueMaterial = new THREE.MeshBasicMaterial({ color: 0x2121de });
+
+  const createBox = (x, y, z, w, h, d) => {
+    let texture = txt.clone();
+
     const geometry = new THREE.BoxGeometry(w, h, d);
-    const material = new THREE.MeshPhongMaterial({ color: col });
-    const box = new THREE.Mesh(geometry, material);
+    var wallMaterial = new THREE.MeshPhongMaterial({
+      map: texture,
+      flatShading: true,
+    });
+
+    let material1, material2
+    if (w > d) {
+      material1 = blueMaterial;
+      material2 = wallMaterial;
+    } else {
+      material1 = wallMaterial;
+      material2 = blueMaterial;
+    }
+
+    const box = new THREE.Mesh(geometry, [
+      material1,
+      material1,
+      blueMaterial,
+      blueMaterial,
+      material2,
+      material2,
+    
+    ])
+    box.name = 'wall'
+
+    // Prevent texture warping
+    let longestSide = Math.max(w, d) / h
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(longestSide , 1)
+
+
+
+
+
     box.position.set(x + w / 2, y + h / 2, z + d / 2);
     objects.push(box);
     scene.add(box);
@@ -142,11 +183,6 @@ function wallFactory(scene, objects) {
 
   boxGeometry.setAttribute( 'color', new THREE.Float32BufferAttribute( colorsBox, 3 ) );
 
-  for ( let i = 0; i < 500; i ++ ) {
-
-
-    
-  }
 
 
   loader.load("https://upload.wikimedia.org/wikipedia/en/5/59/Pac-man.png", function (img) {
@@ -176,9 +212,9 @@ function wallFactory(scene, objects) {
 
     //
     let rects = convertPointsToRectangles(pointArray)
-    console.log(pointArray.length, rects.length, pointArray, rects)
+    //console.log(pointArray.length, rects.length, pointArray, rects)
     rects.forEach(rectangle => {
-      createBox(rectangle[0], 0, rectangle[1], rectangle[2], 10, rectangle[3], 0x2121de)
+      createBox(rectangle[0], 0, rectangle[1], rectangle[2], 10, rectangle[3])
     })
 
 
