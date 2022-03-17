@@ -28,7 +28,7 @@ function addBounds(obj) {
 function detectCollisions(controls, lastSafePosition, velocity, scene, game, objects) {
   // Get the user's current collision area.
   let rotationPoint = controls.getObject()
-  let playerSize = 2;
+  let playerSize = 2.8;
   let px = rotationPoint.position.x;
   let py = rotationPoint.position.y;
   let pz = rotationPoint.position.z;

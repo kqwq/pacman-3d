@@ -67,7 +67,7 @@ class Minimap {
     this.eatTime += this.distanceTravelled
     theta = (Math.PI/2 - theta)
     let nom = 0.5 + Math.sin(this.eatTime * 0.7) * Math.PI / 4
-    ctx.arc(pmx, pmz, 2.5 * this.zoom, theta + nom , Math.PI * 2 + theta - nom, false)
+    ctx.arc(pmx, pmz, 4 * this.zoom, theta + nom , Math.PI * 2 + theta - nom, false)
     ctx.lineTo(pmx, pmz)
     ctx.fill()
 
