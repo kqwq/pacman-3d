@@ -15,6 +15,15 @@ body {
   height: 100%;
   color: #fff;
 }
+#minimap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(0,0,0,0.5);
+  /* make canvas cirular */
+  border-radius: 50%;
+
+}
 #hud-inner {
   position: absolute;
   bottom: 5px;

@@ -2,30 +2,21 @@ import * as THREE from 'three';
 
 
 
-let collisions = []
-
 /**
  * Calculates collision detection parameters.
  */
-function calculateCollisionPoints(mesh, type) {
+function addBounds(obj) {
   // Compute the bounding box after scale, translation, etc.
-  var bbox = new THREE.Box3().setFromObject(mesh);
-
-  var bounds = {
-    type: type,
+  var bbox = new THREE.Box3().setFromObject(obj);
+  obj.bounds = {
     xMin: bbox.min.x,
     xMax: bbox.max.x,
     yMin: bbox.min.y,
     yMax: bbox.max.y,
     zMin: bbox.min.z,
     zMax: bbox.max.z,
-    type: type,
-    mesh: mesh,
     isHorizontal: bbox.max.x - bbox.min.x > bbox.max.z - bbox.min.z,
   };
-  console.log('add ')
-
-  collisions.push(bounds);
 }
 
 
@@ -33,7 +24,7 @@ function calculateCollisionPoints(mesh, type) {
  * Collision detection for every solid object.
  * @return falling
  */
-function detectCollisions(controls, lastSafePosition, velocity) {
+function detectCollisions(controls, lastSafePosition, velocity, scene, game, objects) {
   // Get the user's current collision area.
   let rotationPoint = controls.getObject()
   let playerSize = 2;
@@ -50,14 +41,15 @@ function detectCollisions(controls, lastSafePosition, velocity) {
   };
 
   // Run through each object and detect if there is a collision.
-  for (var index = 0; index < collisions.length; index++) {
+  for (var index = objects.length -1; index >= 0; index --) {
 
-    let col = collisions[index];
+    let obj = objects[index];
+    let col = obj.bounds;
     if ((bounds.xMin <= col.xMax && bounds.xMax >= col.xMin) &&
       (bounds.yMin <= col.yMax && bounds.yMax >= col.yMin) &&
       (bounds.zMin <= col.zMax && bounds.zMax >= col.zMin)) {
 
-      if (col.type === 'wall') {
+      if (obj.type === 'wall') {
         // If player on top of the object, freeze its y position.
         if (velocity.y < 0 && Math.abs(bounds.yMin - col.yMax) < 1) {
           controls.getObject().position.y = lastSafePosition.y;
@@ -65,7 +57,7 @@ function detectCollisions(controls, lastSafePosition, velocity) {
         }
 
         // Slide the player horizontally or vertically
-        if (collisions[index].isHorizontal) {
+        if (col.isHorizontal) {
           controls.getObject().position.z = lastSafePosition.z;
         } else {
           controls.getObject().position.x = lastSafePosition.x;
@@ -73,12 +65,21 @@ function detectCollisions(controls, lastSafePosition, velocity) {
         break
 
       } else if (col.type === 'coin') {
-        console.log('coin')
+        objects.splice(index, 1);
+        scene.remove(col.mesh);
+        game.addCoin();
+      } else if (col.type === 'powerup') {
+        objects.splice(index, 1);
+        scene.remove(col.mesh);
+        game.addPowerup();
+      } else if (col.type === 'ghost') {
+        game.loseLife()
       }
 
+
     }
-    return false
   }
+  return false
 }
 
-  export { detectCollisions, calculateCollisionPoints }
+  export { detectCollisions, addBounds }

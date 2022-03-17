@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 const loader = new THREE.ImageLoader();
 import { Coin, Powerup } from './collectable.js';
-
+import { addBounds } from './collision.js';
 
 
 const vertex = new THREE.Vector3();
@@ -159,6 +159,7 @@ function wallFactory(scene, objects, txt) {
 
 
     box.position.set(x + w / 2, y + h / 2, z + d / 2);
+    addBounds(box)
     objects.push(box);
     scene.add(box);
   }
@@ -205,7 +206,8 @@ function wallFactory(scene, objects, txt) {
       // Look for coins (2x2 grid of color #ffb897, RGB(255, 184, 151))
       if (pixelData[i + 2] === 151 && pixelData[i + 1] === pixelData[i + 4 + 1] && pixelData[i + 1] === pixelData[i + img.width * 4 + 1]) {
         let coin = new Coin(x, y)
-
+        addBounds(coin)
+        objects.push(coin);
         scene.add(coin);
         
       }
@@ -213,7 +215,8 @@ function wallFactory(scene, objects, txt) {
       // Look for powerups dots, brown RGB(185, 122, 87)
       if (pixelData[i] === 185 && pixelData[i + 1] === 122 && pixelData[i + 2] === 87) {
         let powerup = new Powerup(x, y)
-
+        addBounds(powerup)
+        objects.push(powerup);
         scene.add(powerup);
         
       }
