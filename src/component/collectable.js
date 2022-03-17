@@ -22,7 +22,7 @@ function Powerup(x, y) {
     // Create a new mesh with powerup geometry and material
     let geometry = new THREE.SphereGeometry(2, 8, 8);
     let material = new THREE.MeshBasicMaterial({
-        color: 0xffa8b7,
+        color: 0xfefefe,
     });
     let powerup = new THREE.Mesh(geometry, material);
     powerup.position.set(x+1/2, 5, y+1/2);

@@ -195,9 +195,6 @@ function wallFactory(scene, objects, txt) {
     canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height);
     var pixelData = canvas.getContext('2d').getImageData(0, 0, img.width, img.height).data;
 
-    let waypoints = []
-    let waypointInd = 0
-
     let pointArray = Array(img.height).fill(0).map(() => Array(img.width).fill(0));
     for (let i = 0; i < pixelData.length; i += 4) {
       let x = i / 4 % img.width;
@@ -224,75 +221,10 @@ function wallFactory(scene, objects, txt) {
         scene.add(powerup);
       }
 
-      // Look for waypoints, violet RGB(128, 0, 255)
-      if (pixelData[i] === 128 && pixelData[i + 1] === 0 && pixelData[i + 2] === 255) {
-        let waypoint = { id: waypointInd++, x : x, y : y, dir: [] }
-        waypoints.push(waypoint)
 
-        // Look for directions from waypoint, baby purple RGB(200, *191*, 231)
-        if (pixelData[i + 1 + img.width * 4 * 2] === 191) {
-          waypoint.dir.push('down')
-        }
-        if (pixelData[i + 1 - img.width * 4 * 2] === 191) {
-          waypoint.dir.push('up')
-        }
-        if (pixelData[i + 1 + 4 * 2] === 191) {
-          waypoint.dir.push('right')
-        }
-        if (pixelData[i + 1 - 4 * 2] === 191) {
-          waypoint.dir.push('left')
-        }
-
-
-      }
     }
 
-    // Create waypoints
-    for (let wp of waypoints) {
-      let wdir = wp.dir
-      for (let i in wdir) {
-        let dir = wdir[i]
-        // Find waypoint in direction
-        let bestLink = null
-        let bestDist = Infinity
-        if (dir === 'down') {
-          for (let wp2 of waypoints) {
-            if (wp.x === wp2.x && wp2.y > wp.y && wp2.y - wp.y < bestDist) {
-              bestLink = wp2
-              bestDist = wp2.y - wp.y
-            }
-          }
-        } else if (dir === 'up') {
-          for (let wp2 of waypoints) {
-            if (wp.x === wp2.x && wp2.y < wp.y && wp.y - wp2.y < bestDist) {
-              bestLink = wp2
-              bestDist = wp.y - wp2.y
-            }
-          }
-        } else if (dir === 'right') {
-          for (let wp2 of waypoints) {
-            if (wp.y === wp2.y && wp2.x > wp.x && wp2.x - wp.x < bestDist) {  
-              bestLink = wp2
-              bestDist = wp2.x - wp.x
-            }
-          }
-        } else if (dir === 'left') {
-          for (let wp2 of waypoints) {
-            if (wp.y === wp2.y && wp2.x < wp.x && wp.x - wp2.x < bestDist) {
-              bestLink = wp2
-              bestDist = wp.x - wp2.x
-            }
-          }
-        }
-        if (bestLink) {
-          wdir[i] = bestLink.id
-        } else {
-          console.log('No waypoint found for', wp.id, dir)
-        }
-      }
-    }
-    console.log(JSON.stringify(waypoints))
-
+    
 
     // Create walls
     let rects = convertPointsToRectangles(pointArray)

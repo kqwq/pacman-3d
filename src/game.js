@@ -16,6 +16,7 @@ let moveBackward = false;
 let moveLeft = false;
 let moveRight = false;
 let falling = true;
+let playerSpeed = 400
 
 
 let prevTime = performance.now();
@@ -315,8 +316,8 @@ function animate() {
     direction.x = Number(moveRight) - Number(moveLeft);
     direction.normalize(); // this ensures consistent movements in all directions
 
-    if (moveForward || moveBackward) velocity.z -= direction.z * 400.0 * delta;
-    if (moveLeft || moveRight) velocity.x -= direction.x * 400.0 * delta;
+    if (moveForward || moveBackward) velocity.z -= direction.z * playerSpeed * delta;
+    if (moveLeft || moveRight) velocity.x -= direction.x * playerSpeed * delta;
 
     let lastSafePosition = controls.getObject().position.clone();
 
