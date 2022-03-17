@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 
 import { floorFactory, wallFactory, ghostFactory } from './component/factory.js';
-import { detectCollisions } from './component/collision.js';
+import { addBounds, detectCollisions } from './component/collision.js';
 import { PointerLockControls } from './util/PointerLockControls.js';
 import Minimap from './component/minimap.js';
 var STLLoader = require('three-stl-loader')(THREE)
 
-let scene, renderer, myPointLight, raycaster;
+let scene, renderer, myPointLight, raycaster, skyboxGeo, skybox;
+let materialCorona, materialRedEclipse;
 
 const objects = [];
 
@@ -18,7 +19,7 @@ let falling = true;
 
 
 let prevTime = performance.now();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 30000);
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
 const controls = new PointerLockControls(camera, document.body);
@@ -28,15 +29,21 @@ class Game {
   constructor() {
     this.stage = 1;
     this.coins = 0;
-    this.lives = 3;
     this.score = 0;
     this.coinsTotal = 240;
     this.powerupActive = false;
     this.powerupDuration = 10 // seconds
+    this.ghosts = [];
+    this.powerupCountdown = 0;
   }
 
   loadStage() {
     objects.splice(0, objects.length);
+    this.ghosts = [];
+
+    // skybox
+    skybox = new THREE.Mesh(skyboxGeo, this.stage === 1 ? materialCorona : materialRedEclipse);
+    scene.add(skybox);
     
     // floor pattern
     floorFactory(scene);
@@ -50,11 +57,14 @@ class Game {
 
     // ghosts
     new STLLoader().load('asset/ghost.stl', function (geometry) {
-      console.log(34, geometry)
-      for (let i = 0; i < 4; i++) {
-        ghostFactory(scene, objects, geometry, i);
-      }
+      game.ghosts = ghostFactory(scene, objects, geometry);
     });
+
+    // player
+    direction.set(0, 0, 0);
+    velocity.set(0, 0, 0);
+    controls.getObject().rotation.set(0, Math.PI, 0);
+    controls.getObject().position.set(112, 6, 211)
 
     document.getElementById('coinsTotal').innerHTML = this.coinsTotal;
     document.getElementById('stage').innerHTML = this.stage;
@@ -67,7 +77,7 @@ class Game {
 
   addCoin() {
     this.coins++;
-    this.score++;
+    this.score += 10;
     document.getElementById('coins').innerHTML = this.coins;
     document.getElementById('score').innerHTML = this.score;
 
@@ -75,7 +85,6 @@ class Game {
       setTimeout(() => {
         this.stage++;
         this.coins = 0;
-        this.coinsTotal = 0;
         document.getElementById('stage').innerHTML = this.stage;
         document.getElementById('coins').innerHTML = this.coins;
         document.getElementById('coinsTotal').innerHTML = this.coinsTotal;
@@ -86,13 +95,11 @@ class Game {
   }
 
   addPowerup() {
-    this.score += 10
+    this.score += 50
     document.getElementById('score').innerHTML = this.score;
     document.getElementById('powerup').style.display = 'block';
     this.powerupActive = true;
-    setTimeout(() => {
-      this.removePowerup();
-    }, this.powerupDuration * 1000);
+    this.powerupCountdown = this.powerupDuration;
   }
 
   removePowerup() {
@@ -100,15 +107,53 @@ class Game {
     document.getElementById('powerup').style.display = 'none';
 
   }
+
+  loseGame() {
+
+  }
+
+  update(delta) {
+    for (let i = 0; i < this.ghosts.length; i++) {
+      let ghost = this.ghosts[i];
+      ghost.update(delta);
+      addBounds(ghost);
+    }
+
+    if (this.powerupActive) {
+      this.powerupCountdown -= delta;
+      if (this.powerupCountdown <= 0) {
+        this.removePowerup();
+      }
+    }
+  }
 }
 const game = new Game();
+
+
+function createPathStrings(filename) {
+  const basePath = "./asset/skybox/";
+  const baseFilename = basePath + filename;
+  const fileType = ".png";
+  const sides = ["ft", "bk", "up", "dn", "rt", "lf"];
+  const pathStings = sides.map(side => {
+    return baseFilename + "_" + side + fileType;
+  });
+  return pathStings;
+}
+function createMaterialArray(filename) {
+  const skyboxImagepaths = createPathStrings(filename);
+  const materialArray = skyboxImagepaths.map(image => {
+    let texture = new THREE.TextureLoader().load(image);
+    return new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide }); // <---
+  });
+  return materialArray;
+}
 
 function init() {
 
   // Camera/rendering
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x445);
-  scene.fog = new THREE.Fog(0x222, 0, 70);
+  //scene.fog = new THREE.Fog(0x222, 0, 70);
 
   // Lights
   const light = new THREE.HemisphereLight(0xeeeeff, 0x777788, 0.75);
@@ -117,8 +162,12 @@ function init() {
   myPointLight = new THREE.PointLight(0xffff99, 2.1, 19);
   scene.add(myPointLight);
 
+  // skybox init (rest is set up in game.loadStage())
+  materialCorona = createMaterialArray("corona");
+  materialRedEclipse = createMaterialArray("redeclipse");
+  skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
 
-
+  // 
   const blocker = document.getElementById('blocker');
   const instructions = document.getElementById('instructions');
 
@@ -293,6 +342,7 @@ function animate() {
       powerupText.style.color = 'hsl(' + time + ', 100%, 50%)';
     }
 
+    game.update(delta);
 
   }
 
@@ -304,6 +354,7 @@ function animate() {
   prevTime = time;
 
   renderer.render(scene, camera);
+
 
   let camDirection = camera.getWorldDirection( new THREE.Vector3() );
   let theta = Math.atan2(camDirection.x, camDirection.z);

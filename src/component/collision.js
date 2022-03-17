@@ -17,7 +17,7 @@ function addBounds(obj) {
     zMax: bbox.max.z,
     isHorizontal: bbox.max.x - bbox.min.x > bbox.max.z - bbox.min.z,
   };
-  obj.fillStyle = obj.material.color?.getStyle() || obj.material[3].color.getStyle();
+  obj.fillStyle = obj.fillStyle || obj.material.color?.getStyle() || obj.material[3].color.getStyle();
 }
 
 
@@ -74,7 +74,7 @@ function detectCollisions(controls, lastSafePosition, velocity, scene, game, obj
         scene.remove(obj);
         game.addPowerup();
       } else if (obj.name === 'ghost') {
-        game.loseLife()
+        game.lostGame()
       }
 
 

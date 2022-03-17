@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 const loader = new THREE.ImageLoader();
 import { Coin, Powerup } from './collectable.js';
+import { Ghost } from './ghost.js';
 import { addBounds } from './collision.js';
 
 
@@ -15,17 +16,17 @@ function convertPointsToRectangles(pointArray) {
   let rectangles = [];
 
   // Detect horizontal lines
-  for (let y = 0; y < pointArray.length; y ++) {
-    for (let x = 0; x < pointArray[y].length; x ++) {
+  for (let y = 0; y < pointArray.length; y++) {
+    for (let x = 0; x < pointArray[y].length; x++) {
       if (pointArray[y][x]) {
         let x1 = x;
         let x2 = x;
-        while (pointArray[y][x2]===1) {
-          x2 ++;
+        while (pointArray[y][x2] === 1) {
+          x2++;
         }
         if (x2 - x1 > 1) {
           // Mark as visited
-          for (let i = x1; i <= x2; i ++) {
+          for (let i = x1; i <= x2; i++) {
             pointArray[y][i] = 2;
           }
           rectangles.push([x1, y, x2 - x1, 1])
@@ -36,17 +37,17 @@ function convertPointsToRectangles(pointArray) {
   }
 
   // Detect vertical lines
-  for (let x = 0; x < pointArray[0].length; x ++) {
-    for (let y = 0; y < pointArray.length; y ++) {
+  for (let x = 0; x < pointArray[0].length; x++) {
+    for (let y = 0; y < pointArray.length; y++) {
       if (pointArray[y][x]) {
         let y1 = y;
         let y2 = y;
-        while (pointArray[y2][x]===1) {
-          y2 ++;
+        while (pointArray[y2][x] === 1) {
+          y2++;
         }
         if (y2 - y1 > 1) {
           // Mark as visited
-          for (let i = y1; i <= y2; i ++) {
+          for (let i = y1; i <= y2; i++) {
             pointArray[i][x] = 2;
           }
           rectangles.push([x, y1, 1, y2 - y1])
@@ -57,8 +58,8 @@ function convertPointsToRectangles(pointArray) {
   }
 
   // Add all remaining 1x1 points as rectangles
-  for (let y = 0; y < pointArray.length; y ++) {
-    for (let x = 0; x < pointArray[y].length; x ++) {
+  for (let y = 0; y < pointArray.length; y++) {
+    for (let x = 0; x < pointArray[y].length; x++) {
       if (pointArray[y][x] === 1) {
         rectangles.push([x, y, 1, 1])
       }
@@ -71,48 +72,48 @@ function convertPointsToRectangles(pointArray) {
 
 
 function floorFactory(scene) {
-    // floor
+  // floor
 
-    let floorGeometry = new THREE.PlaneGeometry( 300, 300, 16, 16);
-    floorGeometry.rotateX( - Math.PI / 2 );
-    // move floor
+  let floorGeometry = new THREE.PlaneGeometry(300, 300, 16, 16);
+  floorGeometry.rotateX(- Math.PI / 2);
+  // move floor
 
-  
-    // vertex displacement
-  
-    let position = floorGeometry.attributes.position;
-  
-    for ( let i = 0, l = position.count; i < l; i ++ ) {
-  
-      vertex.fromBufferAttribute( position, i );
-  
-      vertex.x += Math.random() * 20 + 100;
-      vertex.y += Math.random() * 0.1;
-      vertex.z += Math.random() * 20 + 150;
-  
-      position.setXYZ( i, vertex.x, vertex.y, vertex.z );
-  
-    }
-  
-    floorGeometry = floorGeometry.toNonIndexed(); // ensure each face has unique vertices
-  
-    position = floorGeometry.attributes.position;
-    const colorsFloor = [];
-  
-    for ( let i = 0, l = position.count; i < l; i ++ ) {
-  
-      color.setHSL( Math.random() * 0.1 + 0.6, 0.25, Math.random() * 0.25 );
-      colorsFloor.push( color.r, color.g, color.b );
-  
-    }
-  
-    floorGeometry.setAttribute( 'color', new THREE.Float32BufferAttribute( colorsFloor, 3 ) );
-  
-    const floorMaterial = new THREE.MeshBasicMaterial( { vertexColors: true } );
-  
-    const floor = new THREE.Mesh( floorGeometry, floorMaterial );
-    floor.name = 'floor';
-    scene.add( floor )
+
+  // vertex displacement
+
+  let position = floorGeometry.attributes.position;
+
+  for (let i = 0, l = position.count; i < l; i++) {
+
+    vertex.fromBufferAttribute(position, i);
+
+    vertex.x += Math.random() * 20 + 100;
+    vertex.y += Math.random() * 0.1;
+    vertex.z += Math.random() * 20 + 150;
+
+    position.setXYZ(i, vertex.x, vertex.y, vertex.z);
+
+  }
+
+  floorGeometry = floorGeometry.toNonIndexed(); // ensure each face has unique vertices
+
+  position = floorGeometry.attributes.position;
+  const colorsFloor = [];
+
+  for (let i = 0, l = position.count; i < l; i++) {
+
+    color.setHSL(Math.random() * 0.1 + 0.6, 0.25, Math.random() * 0.25);
+    colorsFloor.push(color.r, color.g, color.b);
+
+  }
+
+  floorGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colorsFloor, 3));
+
+  const floorMaterial = new THREE.MeshBasicMaterial({ vertexColors: true });
+
+  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+  floor.name = 'floor';
+  scene.add(floor)
 }
 
 function wallFactory(scene, objects, txt) {
@@ -144,7 +145,7 @@ function wallFactory(scene, objects, txt) {
       blueMaterial,
       material2,
       material2,
-    
+
     ])
     box.name = 'wall'
 
@@ -152,7 +153,7 @@ function wallFactory(scene, objects, txt) {
     let longestSide = Math.max(w, d) / h
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(longestSide , 1)
+    texture.repeat.set(longestSide, 1)
 
 
 
@@ -164,24 +165,24 @@ function wallFactory(scene, objects, txt) {
     scene.add(box);
   }
 
-    // const boxMaterial = new THREE.MeshPhongMaterial( { specular: 0xffffff, flatShading: true, vertexColors: true } );
-    // boxMaterial.color.setHSL( Math.random() * 0.2 + 0.5, 0.75, Math.random() * 0.25 + 0.75 );
+  // const boxMaterial = new THREE.MeshPhongMaterial( { specular: 0xffffff, flatShading: true, vertexColors: true } );
+  // boxMaterial.color.setHSL( Math.random() * 0.2 + 0.5, 0.75, Math.random() * 0.25 + 0.75 );
 
-    // const box = new THREE.Mesh( boxGeometry, boxMaterial );
+  // const box = new THREE.Mesh( boxGeometry, boxMaterial );
 
 
-  const boxGeometry = new THREE.BoxGeometry( 1, 1, 1 ).toNonIndexed();
+  const boxGeometry = new THREE.BoxGeometry(1, 1, 1).toNonIndexed();
 
   let position = boxGeometry.attributes.position;
   const colorsBox = [];
 
-  for ( let i = 0, l = position.count; i < l; i ++ ) {
+  for (let i = 0, l = position.count; i < l; i++) {
 
-    color.setHSL( Math.random() * 0.3 + 0.5, 0.75, Math.random() * 0.25 + 0.75 );
-    colorsBox.push( color.r, color.g, color.b );
+    color.setHSL(Math.random() * 0.3 + 0.5, 0.75, Math.random() * 0.25 + 0.75);
+    colorsBox.push(color.r, color.g, color.b);
   }
 
-  boxGeometry.setAttribute( 'color', new THREE.Float32BufferAttribute( colorsBox, 3 ) );
+  boxGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colorsBox, 3));
 
 
 
@@ -193,7 +194,10 @@ function wallFactory(scene, objects, txt) {
     canvas.height = img.height;
     canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height);
     var pixelData = canvas.getContext('2d').getImageData(0, 0, img.width, img.height).data;
-    
+
+    let waypoints = []
+    let waypointInd = 0
+
     let pointArray = Array(img.height).fill(0).map(() => Array(img.width).fill(0));
     for (let i = 0; i < pixelData.length; i += 4) {
       let x = i / 4 % img.width;
@@ -202,14 +206,14 @@ function wallFactory(scene, objects, txt) {
       if (pixelData[i] === 33 && pixelData[i + 1] === 33 && pixelData[i + 2] === 222) {
         pointArray[y][x] = 1;
       }
-      
+
       // Look for coins (2x2 grid of color #ffb897, RGB(255, 184, 151))
       if (pixelData[i + 2] === 151 && pixelData[i + 1] === pixelData[i + 4 + 1] && pixelData[i + 1] === pixelData[i + img.width * 4 + 1]) {
         let coin = new Coin(x, y)
         addBounds(coin)
         objects.push(coin);
         scene.add(coin);
-        
+
       }
 
       // Look for powerups dots, brown RGB(185, 122, 87)
@@ -218,15 +222,80 @@ function wallFactory(scene, objects, txt) {
         addBounds(powerup)
         objects.push(powerup);
         scene.add(powerup);
-        
+      }
+
+      // Look for waypoints, violet RGB(128, 0, 255)
+      if (pixelData[i] === 128 && pixelData[i + 1] === 0 && pixelData[i + 2] === 255) {
+        let waypoint = { id: waypointInd++, x : x, y : y, dir: [] }
+        waypoints.push(waypoint)
+
+        // Look for directions from waypoint, baby purple RGB(200, *191*, 231)
+        if (pixelData[i + 1 + img.width * 4 * 2] === 191) {
+          waypoint.dir.push('down')
+        }
+        if (pixelData[i + 1 - img.width * 4 * 2] === 191) {
+          waypoint.dir.push('up')
+        }
+        if (pixelData[i + 1 + 4 * 2] === 191) {
+          waypoint.dir.push('right')
+        }
+        if (pixelData[i + 1 - 4 * 2] === 191) {
+          waypoint.dir.push('left')
+        }
+
+
       }
     }
 
-    
+    // Create waypoints
+    for (let wp of waypoints) {
+      let wdir = wp.dir
+      for (let i in wdir) {
+        let dir = wdir[i]
+        // Find waypoint in direction
+        let bestLink = null
+        let bestDist = Infinity
+        if (dir === 'down') {
+          for (let wp2 of waypoints) {
+            if (wp.x === wp2.x && wp2.y > wp.y && wp2.y - wp.y < bestDist) {
+              bestLink = wp2
+              bestDist = wp2.y - wp.y
+            }
+          }
+        } else if (dir === 'up') {
+          for (let wp2 of waypoints) {
+            if (wp.x === wp2.x && wp2.y < wp.y && wp.y - wp2.y < bestDist) {
+              bestLink = wp2
+              bestDist = wp.y - wp2.y
+            }
+          }
+        } else if (dir === 'right') {
+          for (let wp2 of waypoints) {
+            if (wp.y === wp2.y && wp2.x > wp.x && wp2.x - wp.x < bestDist) {  
+              bestLink = wp2
+              bestDist = wp2.x - wp.x
+            }
+          }
+        } else if (dir === 'left') {
+          for (let wp2 of waypoints) {
+            if (wp.y === wp2.y && wp2.x < wp.x && wp.x - wp2.x < bestDist) {
+              bestLink = wp2
+              bestDist = wp.x - wp2.x
+            }
+          }
+        }
+        if (bestLink) {
+          wdir[i] = bestLink.id
+        } else {
+          console.log('No waypoint found for', wp.id, dir)
+        }
+      }
+    }
+    console.log(JSON.stringify(waypoints))
 
-    //
+
+    // Create walls
     let rects = convertPointsToRectangles(pointArray)
-    //console.log(pointArray.length, rects.length, pointArray, rects)
     rects.forEach(rectangle => {
       createBox(rectangle[0], 0, rectangle[1], rectangle[2], 10, rectangle[3])
     })
@@ -236,7 +305,7 @@ function wallFactory(scene, objects, txt) {
 
 }
 
-function ghostFactory(scene, objects, geometry, ind) {
+function ghostFactory(scene, objects, geometry) {
   let ghostColors = [ // Ghost colors from pacman
     0xff0000,
     0x00ffff,
@@ -244,28 +313,23 @@ function ghostFactory(scene, objects, geometry, ind) {
     0xffb847
   ]
   let ghostCoords = [
-    [0, 0],
-    [6, 0],
-    [12, 0],
-    [18, 0]
+    [112, 117],
+    [96, 140],
+    [113, 140],
+    [129, 140]
   ]
+  const ghostArr = []
   let textureMatcap = new THREE.TextureLoader().load(`asset/matghost.png`)
-
-  var ghostMaterial = new THREE.MeshMatcapMaterial({ 
-    color: ghostColors[ind || 0],
-    matcap: textureMatcap,
-    
-
-  });
-
-  const ghost = new THREE.Mesh(geometry, ghostMaterial);
-  ghost.name = 'ghost';
-  ghost.scale.set(0.2, 0.2, 0.2);
-  ghost.rotateOnAxis(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-  // scale down by 20%
-  let [x, z] = ghostCoords[ind || 0]
-  ghost.position.set(x, 5, z);
-  scene.add(ghost);
+  for (let i = 0; i < ghostColors.length; i++) {
+    let [x, z] = ghostCoords[i]
+    let color = ghostColors[i]
+    const ghost = new Ghost(x, z, color, geometry, textureMatcap)
+    addBounds(ghost)
+    scene.add(ghost);
+    objects.push(ghost);
+    ghostArr.push(ghost);
+  }
+  return ghostArr
 
 }
 
