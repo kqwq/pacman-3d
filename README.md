@@ -5,5 +5,5 @@ Let's try this.
 ### TODO
 - Build walls for the level
 - clean up
-- add coins
+- add coins (make them collectable)
 - add enemies

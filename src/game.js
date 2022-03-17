@@ -6,7 +6,7 @@ import { PointerLockControls } from './util/PointerLockControls.js';
 import Minimap from './component/minimap.js';
 var STLLoader = require('three-stl-loader')(THREE)
 
-let camera, scene, renderer, controls, myPointLight, raycaster;
+let scene, renderer, myPointLight, raycaster;
 
 const objects = [];
 
@@ -18,9 +18,11 @@ let falling = true;
 
 
 let prevTime = performance.now();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
-const minimp = new Minimap(objects, direction)
+const controls = new PointerLockControls(camera, document.body);
+const minimap = new Minimap(objects, controls)
 
 class Game {
   constructor() {
@@ -104,7 +106,6 @@ const game = new Game();
 function init() {
 
   // Camera/rendering
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x445);
   scene.fog = new THREE.Fog(0x222, 0, 70);
@@ -117,7 +118,6 @@ function init() {
   scene.add(myPointLight);
 
 
-  controls = new PointerLockControls(camera, document.body);
 
   const blocker = document.getElementById('blocker');
   const instructions = document.getElementById('instructions');
@@ -232,6 +232,7 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
 
   renderer.setSize(window.innerWidth, window.innerHeight);
+  minimap.onResize()
 
 }
 
@@ -291,6 +292,8 @@ function animate() {
       let powerupText = document.getElementById('powerup');
       powerupText.style.color = 'hsl(' + time + ', 100%, 50%)';
     }
+
+
   }
 
   // my point light
@@ -302,9 +305,9 @@ function animate() {
 
   renderer.render(scene, camera);
 
-  // mini map
-  minimp.update()
-
+  let camDirection = camera.getWorldDirection( new THREE.Vector3() );
+  let theta = Math.atan2(camDirection.x, camDirection.z);
+  minimap.update(theta)
 }
 
 export { init };

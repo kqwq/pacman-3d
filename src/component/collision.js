@@ -17,6 +17,7 @@ function addBounds(obj) {
     zMax: bbox.max.z,
     isHorizontal: bbox.max.x - bbox.min.x > bbox.max.z - bbox.min.z,
   };
+  obj.fillStyle = obj.material.color?.getStyle() || obj.material[3].color.getStyle();
 }
 
 
@@ -49,7 +50,7 @@ function detectCollisions(controls, lastSafePosition, velocity, scene, game, obj
       (bounds.yMin <= col.yMax && bounds.yMax >= col.yMin) &&
       (bounds.zMin <= col.zMax && bounds.zMax >= col.zMin)) {
 
-      if (obj.type === 'wall') {
+      if (obj.name === 'wall') {
         // If player on top of the object, freeze its y position.
         if (velocity.y < 0 && Math.abs(bounds.yMin - col.yMax) < 1) {
           controls.getObject().position.y = lastSafePosition.y;
@@ -64,15 +65,15 @@ function detectCollisions(controls, lastSafePosition, velocity, scene, game, obj
         }
         break
 
-      } else if (col.type === 'coin') {
+      } else if (obj.name === 'coin') {
         objects.splice(index, 1);
-        scene.remove(col.mesh);
+        scene.remove(obj);
         game.addCoin();
-      } else if (col.type === 'powerup') {
+      } else if (obj.name === 'powerup') {
         objects.splice(index, 1);
-        scene.remove(col.mesh);
+        scene.remove(obj);
         game.addPowerup();
-      } else if (col.type === 'ghost') {
+      } else if (obj.name === 'ghost') {
         game.loseLife()
       }
 
