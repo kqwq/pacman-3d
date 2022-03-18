@@ -116,18 +116,31 @@ function floorFactory(scene) {
   scene.add(floor)
 }
 
-function wallFactory(scene, objects, txt) {
+function wallFactory(scene, objects, txt, stage) {
 
-  var blueMaterial = new THREE.MeshBasicMaterial({ color: 0x2121de });
+  var blueMaterial = new THREE.MeshBasicMaterial({ 
+    color: 0x2121de
+    
+   });
 
   const createBox = (x, y, z, w, h, d) => {
     let texture = txt.clone();
+    let wallMaterial
 
     const geometry = new THREE.BoxGeometry(w, h, d);
-    var wallMaterial = new THREE.MeshPhongMaterial({
+
+    if (stage === 2) {
+      blueMaterial = new THREE.MeshPhongMaterial()
+      blueMaterial.color.setHSL(x * 0.01, 0.9, 0.2);
+
+      wallMaterial = blueMaterial;
+    } else {
+
+     wallMaterial = new THREE.MeshPhongMaterial({
       map: texture,
       flatShading: true,
     });
+  }
 
     let material1, material2
     if (w > d) {
@@ -237,7 +250,7 @@ function wallFactory(scene, objects, txt) {
 
 }
 
-function ghostFactory(scene, objects, geometry) {
+function ghostFactory(scene, objects, geometry, stage) {
   let ghostColors = [ // Ghost colors from pacman
     0xff0000,
     0x00ffff,
@@ -255,7 +268,7 @@ function ghostFactory(scene, objects, geometry) {
   for (let i = 0; i < ghostColors.length; i++) {
     let [x, z] = ghostCoords[i]
     let color = ghostColors[i]
-    const ghost = new Ghost(x, z, color, geometry, textureMatcap)
+    const ghost = new Ghost(x, z, color, geometry, textureMatcap, stage)
     addBounds(ghost)
     scene.add(ghost);
     objects.push(ghost);

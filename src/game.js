@@ -7,7 +7,7 @@ import Minimap from './component/minimap.js';
 var STLLoader = require('three-stl-loader')(THREE)
 
 let scene, renderer, myPointLight, raycaster, skyboxGeo, skybox;
-let materialCorona, materialRedEclipse;
+let materialCorona, materialRedEclipse, light;
 
 const objects = [];
 
@@ -16,7 +16,7 @@ let moveBackward = false;
 let moveLeft = false;
 let moveRight = false;
 let falling = true;
-let playerSpeed = 400
+let playerSpeed = 380
 
 
 let prevTime = performance.now();
@@ -26,19 +26,49 @@ const direction = new THREE.Vector3();
 const controls = new PointerLockControls(camera, document.body);
 const minimap = new Minimap(objects, controls)
 
+const blocker = document.getElementById('blocker');
+const instructions = document.getElementById('instructions');
+const restartBtn = document.getElementById('gameover-restart');
+const gameover = document.getElementById('instructions');
+
 class Game {
   constructor() {
-    this.stage = 1;
+    this.stage = 1
+    this.lastStage = 2
     this.coins = 0;
     this.score = 0;
     this.coinsTotal = 240;
     this.powerupActive = false;
-    this.powerupDuration = 10 // seconds
+    this.powerupDuration = 11 // seconds
     this.ghosts = [];
     this.powerupCountdown = 0;
+    this.gameOver = false;
+    this.highscore = 0;
   }
 
   loadStage() {
+    this.powerupActive = false;
+    this.coins = 0;
+    this.score = 0;
+    document.getElementById('coins').innerHTML = this.coins;
+    document.getElementById('score').innerHTML = this.score;
+    document.getElementById('stage').innerHTML = this.stage;
+    document.getElementById('powerup').style.display = 'none';
+
+    objects.splice(0, objects.length);
+    while(scene.children.length > 0){ 
+      scene.remove(scene.children[0]); 
+    }
+
+    // lighting
+    
+  
+  scene.add(light);
+  scene.add(myPointLight);
+  scene.add(controls.getObject());
+
+    document.getElementById('gameover').style.display = 'none';
+    this.gameOver = false;
     objects.splice(0, objects.length);
     this.ghosts = [];
 
@@ -52,13 +82,13 @@ class Game {
     // walls
     new THREE.TextureLoader().load(`asset/wall${this.stage}.jpg`, function (texture) {
 
-      wallFactory(scene, objects, texture);
+      wallFactory(scene, objects, texture, game.stage);
       
     })
 
     // ghosts
     new STLLoader().load('asset/ghost.stl', function (geometry) {
-      game.ghosts = ghostFactory(scene, objects, geometry);
+      game.ghosts = ghostFactory(scene, objects, geometry, game.stage);
     });
 
     // player
@@ -84,8 +114,13 @@ class Game {
 
     if (this.coins >= this.coinsTotal) {
       setTimeout(() => {
-        this.stage++;
         this.coins = 0;
+        this.stage++;
+        if (this.stage > this.lastStage) {
+          this.stage = 1;
+          this.loseGame(false)
+          return
+        }
         document.getElementById('stage').innerHTML = this.stage;
         document.getElementById('coins').innerHTML = this.coins;
         document.getElementById('coinsTotal').innerHTML = this.coinsTotal;
@@ -109,8 +144,21 @@ class Game {
 
   }
 
-  loseGame() {
+  loseGame(lost) {
 
+    this.highscore = Math.max(this.highscore, this.score);
+    document.getElementById('gameover-score').innerHTML = this.score;
+    document.getElementById('gameover-highscore').innerHTML = this.highscore;
+
+    controls.unlock();
+    instructions.style.display = 'none';
+    document.getElementById('gameover').style.display = 'block';
+
+    document.getElementById('gameover-title').innerHTML = lost===false ? 'Winner!' : 'Game Over';
+ 
+
+    this.gameOver = true;
+    this.stage = 1;
   }
 
   update(delta) {
@@ -157,25 +205,27 @@ function init() {
   //scene.fog = new THREE.Fog(0x222, 0, 70);
 
   // Lights
-  const light = new THREE.HemisphereLight(0xeeeeff, 0x777788, 0.75);
+  light = new THREE.HemisphereLight(0xeeeeff, 0x777788, 0.75);
   light.position.set(0.5, 1, 0.75);
-  scene.add(light);
-  myPointLight = new THREE.PointLight(0xffff99, 2.1, 19);
-  scene.add(myPointLight);
+  myPointLight = new THREE.PointLight(0xffff99, 1.9, 25);
 
   // skybox init (rest is set up in game.loadStage())
   materialCorona = createMaterialArray("corona");
   materialRedEclipse = createMaterialArray("redeclipse");
   skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
 
-  // 
-  const blocker = document.getElementById('blocker');
-  const instructions = document.getElementById('instructions');
+
 
   instructions.addEventListener('click', function () {
 
     controls.lock();
 
+  });
+
+  restartBtn.addEventListener('click', function () {
+    game.loadStage();
+    gameover.style.display = '';
+    instructions.style.display = '';
   });
 
   controls.addEventListener('lock', function () {
@@ -188,11 +238,12 @@ function init() {
   controls.addEventListener('unlock', function () {
 
     blocker.style.display = 'block';
-    instructions.style.display = '';
+    if (!game.gameOver) {
+      instructions.style.display = '';
+    }
 
   });
 
-  scene.add(controls.getObject());
 
   const onKeyDown = function (event) {
 
@@ -219,9 +270,14 @@ function init() {
         break;
 
       case 'Space':
-        if (!falling || velocity.y == 0) velocity.y = 50;
-        falling = true;
+        if (game.powerupActive) {
+          if (!falling || velocity.y == 0) velocity.y = 50;
+          falling = true;
+        }
         break;
+
+
+
 
     }
 
@@ -250,6 +306,10 @@ function init() {
       case 'KeyD':
         moveRight = false;
         break;
+
+        case 'KeyP':
+          game.loadStage();
+          break;
 
     }
 
@@ -291,6 +351,10 @@ function onWindowResize() {
 function animate() {
 
   requestAnimationFrame(animate);
+
+  if (game.gameOver) {
+    return;
+  }
 
   const time = performance.now();
 

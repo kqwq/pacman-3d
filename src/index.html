@@ -21,15 +21,26 @@
   </div>
   <div id="blocker">
     <div id="instructions">
-      <p style="font-size:36px">
+      <h1>
         Click to play
-      </p>
+      </h1>
+      <small>Collect all the coins while avoiding ghosts. You only have 1 life!</small>
       <p>
         Move: WASD<br/>
         Jump: SPACE<br/>
         Look: MOUSE
       </p>
+      
+    <small id="restartInfo">Press P to restart</small>
     </div>
+    <div id="gameover" style="display:none">
+      <h1 id="gameover-title">Game Over</h1>
+      <p>Your score: <span id="gameover-score">00000</span></p>
+      <p>Your high score: <span id="gameover-highscore">00000</span></p>
+      <button id="gameover-restart">Play again</button>
+    </div>
+
+
   </div>
 </body>
 </html>

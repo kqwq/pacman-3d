@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import waypoints from '../asset/waypoints.json';
 
 
-function Ghost(x, z, color, geometry, txtMatcap) {
+function Ghost(x, z, color, geometry, txtMatcap, stage) {
 
   var ghostMaterial = new THREE.MeshMatcapMaterial({
     color: color,
@@ -24,7 +24,8 @@ function Ghost(x, z, color, geometry, txtMatcap) {
   ghost.init = function () {
     this.prevWaypoint = null
     this.nextWaypoint = waypoints[23 + Math.floor(Math.random() * 2)]
-    this.speed = 36;
+    console.log('ghost stage ' + stage)
+    this.speed = stage === 1 ? 20 : 30
     console.log(this)
   }
   ghost.init()

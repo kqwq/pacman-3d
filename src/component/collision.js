@@ -74,7 +74,9 @@ function detectCollisions(controls, lastSafePosition, velocity, scene, game, obj
         scene.remove(obj);
         game.addPowerup();
       } else if (obj.name === 'ghost') {
-        game.lostGame()
+        game.loseGame()
+      } else if (obj.name === 'portal') {
+        
       }
 
 

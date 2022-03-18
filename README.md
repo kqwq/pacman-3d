@@ -1,9 +1,6 @@
 # pacman-3d
 
-Let's try this.
+Live demo: https://kqwq.me/pacman-3d/dist/
 
 ### TODO
-- Build walls for the level
-- clean up
-- add coins (make them collectable)
-- add enemies
+- explain how I made this
