@@ -9,6 +9,8 @@ Libraries used:
 - [three.js](https://threejs.org/)
 - [STL Loader](https://www.npmjs.com/package/three-stl-loader)
 
+JS Modules >>> CommonJS
+
 ### Build and run locally
 1. Clone the project<br>
 `$ git clone https://github.com/kqwq/pacman-3d.git`<br>
